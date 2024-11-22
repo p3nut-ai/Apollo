@@ -33,7 +33,7 @@ Apollo is a trading assistant built to maintain discipline and prevent emotional
 1. Clone the repository:  
    ```bash
    git clone https://github.com/p3nut-ai/Apollo.git
-  ```
+  
 
 2. Navigate to the project directory:
 
