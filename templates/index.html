@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{{ url_for('static',filename='index.css')}}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script type="text/javascript">
+      var ticketId = {{ position }}
+  </script>
+  </head>
+  <body>
+    <div id="main_container">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h3 class="text-left" id="title">Apollo</h3>
+          </div>
+          <div class="row">
+          <div class="col-md-11">
+              {% if status != None %}
+                  {% if pos_profit < 0 %}
+                      <h1 class="text-center status neg_prof" id="profit-display">{{ mod_pos_profit }}</h1>
+                  {% else %}
+                      <h1 class="text-center status pos_prof" id="profit-display">{{ mod_pos_profit }}</h1>
+                  {% endif %}
+              {% else %}
+                  <h1 class="text-center status">{{ status }}</h1>
+              {% endif %}
+          </div>
+          <div class="col-md-1 d-flex align-items-center justify-content-center">
+              <h2 class="text-center close-spacing" id="sub_text">Running Profit</h2>
+          </div>
+          <div class="col-md-12">
+            <div id="btn_container">
+              <div class="row">
+                <div class="col-md-6">
+                  <a class="btn btn-dark" id="close_pos_btn" href="/close_position">Close Position</a>
+                </div>
+                <div class="col-md-6">
+                  <a type="button" class="btn btn-danger" id="be_pos_btn" data-toggle="modal" data-target="#exampleModal">Edit Position</a>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+      <!-- Modal -->
+      <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="text-center" id="title_popup">Apollo</h3>
+            </div>
+            <div class="modal-body">
+              <!-- condition if msg variable is not empty display input  -->
+              <div id="flag_container">
+                <h3 class="text-left msg_flag" id="title" ></h3>
+                <a class="btn" id="back_btn" href="/clear_msg" style="margin-left:10px;">Go Back</a>
+              </div>
+
+              <div class="row" id="not_flag_container">
+                <div class="col-md-12">
+                  <form id="new_tp_form" action="/set_new_tp/{{position}}" method="post">
+                    <input type="number" name="mod_tp" value="" id="edit_tp" placeholder="ENTER NEW TP HERE">
+                    <a class="btn" id="edit_tp_btn">Edit Take Profit</a>
+                    <a class="btn" id="set_breakeven_btn" href="/set_be_ajax">Set Breakeven</a>
+                  </form>
+                </div>
+              </div>
+
+
+            </div>
+            <div class="modal-footer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+  <script>
+  console.log(ticketId);
+
+$(document).ready(function() {
+          function update_profit(){
+            $.ajax({
+                url: '/get_profit', // Your Flask endpoint
+                method: 'GET',
+                success: function(data) {
+                    $('#profit-display').text(data.profit); // Update the profit display
+                    // Update the class based on the profit being positive or negative
+                    if (data.is_negative) {
+                        $('#profit-display').removeClass('pos_prof').addClass('neg_prof');
+                    } else {
+                        $('#profit-display').removeClass('neg_prof').addClass('pos_prof');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error: ", status, error);
+                }
+            });
+          }
+          setInterval(update_profit, 2000); // Fetch profit every 5 seconds
+          function fetchProfit() {
+            $('#back_btn').click(function(e) {
+            e.preventDefault(); // Prevent default button behavior
+
+            $.ajax({
+                url: '/clear_msg',
+                method: 'GET',
+                success: function(data) {
+                    $('#not_flag_container').show();
+                    $('#flag_container').hide();
+                    $('#edit_tp').val('');
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error: ", status, error);
+                }
+            });
+
+          });
+        }
+         setInterval(fetchProfit, 2000); // Fetch profit every 5 seconds
+
+    $('#edit_tp_btn').click(function(e) {
+        e.preventDefault();  // Prevent default link behavior
+
+        var new_tp = $('#edit_tp').val();  // Get the new TP from the input field
+        console.log(new_tp);
+
+        // Disable the button to prevent multiple clicks
+        $(this).prop('disabled', true);
+
+        $.ajax({
+            url: '/set_new_tp/' + ticketId,  // Pass the ticket ID in the URL
+            method: 'POST',
+            data: { new_tp: new_tp },
+            success: function(data) {
+                $('#not_flag_container').hide();
+                $('#flag_container').show();
+                var msg = data.msg;
+                $('.msg_flag').text(msg); // Update modal content
+                console.log(msg);
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error: ", status, error);
+            },
+            complete: function() {
+                // Re-enable the button after the request completes
+                $('#edit_tp_btn').prop('disabled', false);
+            }
+        });
+    });
+
+
+
+
+
+  $('#close_pos_btn').click(function(e) {
+      e.preventDefault();  // Prevent default link behavior
+
+      $.ajax({
+          url: '/close_position', // Your Flask endpoint
+          method: 'GET',
+          success: function(data) {
+            alert(data.msg);
+              // $('#profit-display').text(data.msg);
+
+          },
+          error: function(xhr, status, error) {
+              console.error("AJAX Error: ", status, error);
+          }
+      });
+  });
+
+
+  $('#set_breakeven_btn').click(function(e) {
+      e.preventDefault(); // Prevent default link behavior
+
+      $.ajax({
+          url: '/set_be_ajax',
+          method: 'GET',
+          success: function(data) {
+              $('#not_flag_container').hide();
+              $('#flag_container').show();
+              var msg = data.msg;
+              $('.msg_flag').text(msg); // Update modal content
+              console.log(data);
+          },
+          error: function(xhr, status, error) {
+              $('#flag_container').hide();
+              $('#not_flag_container').show();
+              console.error("AJAX Error: ", status, error);
+          }
+      });
+  });
+
+  function checkQuota() {
+    fetch('/check_quota')
+    .then(response => response.json())
+    .then(data => {
+        if (data.redirect) {
+            window.location.href = '/close_position';
+        } else {
+            console.log(data.msg);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Call this function every 5 seconds
+setInterval(checkQuota, 5000);
+
+  });
+
+
+
+   </script>
+</html>

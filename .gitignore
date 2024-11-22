@@ -1,0 +1,15 @@
+### **.gitignore**
+
+.apollo/
+
+flow.PNG
+
+main_backup.py
+
+mt5whnd.py
+
+notes.txt
+
+session_db.sqlite
+
+todo.txt
