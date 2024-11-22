@@ -6,9 +6,9 @@ from main import *
 colorama.init()
 
 def mt5_login():
-    login = "24401976"
-    password = "lohjILDM_.42!"
-    server = "FivePercentOnline-Real"
+    login = ""
+    password = ""
+    server = ""
     mt5.login(login, password, server)
 
     return True
