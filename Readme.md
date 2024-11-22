@@ -35,6 +35,11 @@ Apollo is a trading assistant built to maintain discipline and prevent emotional
    git clone https://github.com/p3nut-ai/Apollo.git
   ```
 
+2. Navigate to the project directory:
+
+  ```bash
+  cd apollo
+  ```
 
 
 2. Install dependencies:
